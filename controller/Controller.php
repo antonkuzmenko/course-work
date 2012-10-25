@@ -35,7 +35,7 @@ class Controller {
    *  Returns true if template exists
    */
   public function render($template, $args = array()) {
-    return $this->twig->render($template . '.html.twig', $args);
+    return $this->twig->render('actions/' . $template . '.html.twig', $args);
   }
 
   /**
