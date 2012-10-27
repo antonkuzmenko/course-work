@@ -1,0 +1,9 @@
+/*---------FORM---------*/
+
+.form-item-wrapper {
+  margin-top: 10px;
+}
+
+.form-item-wrapper.first-item {
+  margin-top: 0;
+}

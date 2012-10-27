@@ -5,8 +5,16 @@ class Controller {
 
   public function __construct() {
     $this->loadTwig();
-    echo $this->render('index', array());
+    $this->route();
   }
+
+//  Actions
+
+  public function indexAction() {
+    return $this->render('index', array());
+  }
+
+//  Helpers
 
   /**
    * Load and create Twig object.
@@ -34,7 +42,7 @@ class Controller {
    * @return bool
    *  Returns true if template exists
    */
-  public function render($template, $args = array()) {
+  private function render($template, $args = array()) {
     return $this->twig->render('actions/' . $template . '.html.twig', $args);
   }
 
@@ -62,4 +70,17 @@ class Controller {
 
     return '';
   }
+
+  private function route() {
+    $action = $this->arg(0);
+    if ( empty($action) ) {
+      $action = 'index';
+    }
+
+    $actionName = $action . 'Action';
+    if ( method_exists($this, $actionName) ) {
+      echo $this->$actionName();
+    }
+  }
+
 }
