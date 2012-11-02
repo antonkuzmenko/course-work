@@ -1,7 +1,11 @@
 <?php
 
+define('ROOT_ADR', $_SERVER['SERVER_NAME']);
+define('ROOT_DIR', $_SERVER['DOCUMENT_ROOT'] . '/');
+
 class Controller {
-  private $twig;
+  private $_twig;
+  private $_zip;
 
   public function __construct() {
     $this->loadTwig();
@@ -11,7 +15,18 @@ class Controller {
 //  Actions
 
   public function indexAction() {
-    return $this->render('index', array());
+    return $this->render('index');
+  }
+
+  public function noneAction() {
+    return 'There is no page with this address';
+  }
+
+  public function uploadAction() {
+    include_once('magic/Zip.php');
+
+    $this->_zip = new Zip();
+    $this->_zip->handleZipUpload('field-images', ROOT_DIR . 'tmp');
   }
 
 //  Helpers
@@ -24,11 +39,13 @@ class Controller {
     Twig_Autoloader::register();
 
     $loader = new Twig_Loader_Filesystem('templates');
-    $this->twig = new Twig_Environment($loader, array(
+
+    $this->_twig = new Twig_Environment($loader, array(
       'cache' => 'cache',
       'debug' => TRUE,
     ));
-    $this->twig->addExtension(new Twig_Extension_Core());
+
+    $this->_twig->addExtension(new Twig_Extension_Core());
   }
 
   /**
@@ -43,14 +60,14 @@ class Controller {
    *  Returns true if template exists
    */
   private function render($template, $args = array()) {
-    return $this->twig->render('actions/' . $template . '.html.twig', $args);
+    return $this->_twig->render('actions/' . $template . '.html.twig', $args);
   }
 
   /**
    * Clear templates cache.
    */
   protected function clearCache() {
-    $this->twig->clearCacheFiles();
+    $this->_twig->clearCacheFiles();
   }
 
   /**
@@ -63,7 +80,8 @@ class Controller {
    *  argument or empty string
    */
   protected function arg($n = 0) {
-    list($args) = explode('/', $_SERVER['PATH_INFO']);
+    $args = explode('/', ltrim($_SERVER['REQUEST_URI'], '/'));
+
     if (isset($args[$n]) && !empty($args[$n])) {
       return $args[$n];
     }
@@ -72,15 +90,20 @@ class Controller {
   }
 
   private function route() {
-    $action = $this->arg(0);
-    if ( empty($action) ) {
+    $action = $this->arg();
+
+    if (empty($action)) {
       $action = 'index';
     }
 
     $actionName = $action . 'Action';
+
     if ( method_exists($this, $actionName) ) {
       echo $this->$actionName();
+      return;
     }
+
+    echo $this->noneAction();
   }
 
 }

@@ -1,0 +1,9 @@
+# Don't show directory listings for URLs which map to a directory.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+
+  RewriteBase /
+  RewriteRule ^/?([a-z0-9_\-]+)$ index.php?p=$1 [NC,L]
+</IfModule>
