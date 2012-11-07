@@ -32,8 +32,8 @@ class Zip {
     $zip =& $_FILES[ $name ];
 
     if (count($zip['name']) > 1 ||
-      reset($zip['type']) != 'application/zip' ||
-      empty($zip['tmp_name'])
+        reset($zip['type']) != 'application/zip' ||
+        empty($zip['tmp_name'])
     ) {
       return FALSE;
     }
@@ -41,8 +41,6 @@ class Zip {
     if ( ($this->_tmpFolder = $this->generateTmpFolder($folderPath)) === FALSE) {
       return FALSE;
     }
-
-    echo $folderPath;
 
     return $this->extract(reset($zip['tmp_name']), $this->_tmpFolder);
   }
@@ -60,7 +58,8 @@ class Zip {
    */
   protected function extract($from, $to) {
     $status = FALSE;
-    if ($this->_zip->open($from) === TRUE &&
+    if (file_exists($from) &&
+        $this->_zip->open($from) === TRUE &&
         file_exists($to) &&
         is_writable($to)
     ) {
@@ -69,6 +68,38 @@ class Zip {
     }
 
     return $status;
+  }
+
+  /**
+   * Compress files into zip archive
+   *
+   * @param $from
+   *  Compress files from given folder
+   * @param $to
+   *  Save archive into the given folder
+   *
+   * @return bool
+   *  If archive successfully created the returns true, false otherwise
+   */
+  public function compress($from, $to) {
+    if ( $this->_zip->open($to, ZIPARCHIVE::CREATE) !== TRUE) {
+      return FALSE;
+    }
+
+    $files = scandir($from);
+
+    // add file if it is not a folder
+    foreach ($files as $file) {
+      $filePath = $from . '/' . $file;
+
+      if ( file_exists($filePath) && !is_dir($filePath) ) {
+        $this->_zip->addFile($filePath, $file);
+      }
+    }
+
+    $this->_zip->close();
+
+    return file_exists($to);
   }
 
   /**
@@ -93,32 +124,5 @@ class Zip {
     }
 
     return $folder;
-  }
-
-  /**
-   * Recursively remove folder.
-   *
-   * @param $dir
-   */
-  private function rrmdir($dir) {
-    foreach (glob($dir . '/*') as $file) {
-      if ( is_dir($file) ) {
-        $this->rrmdir($file);
-      }
-      else {
-        unlink($file);
-      }
-    }
-
-    rmdir($dir);
-  }
-
-  private function forceDownloadFile($filePath) {
-    $fileUrl = 'http://' . $_SERVER['SERVER_NAME'] . '/' . $filePath;
-
-    header('Content-Type: application/octet-stream');
-    header('Content-Transfer-Encoding: Binary');
-    header('Content-disposition: attachment; filename="' . $filePath . '"');
-    readfile($fileUrl);
   }
 }

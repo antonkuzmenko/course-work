@@ -5,7 +5,6 @@ define('ROOT_DIR', $_SERVER['DOCUMENT_ROOT'] . '/');
 
 class Controller {
   private $_twig;
-  private $_zip;
 
   public function __construct() {
     $this->loadTwig();
@@ -23,10 +22,53 @@ class Controller {
   }
 
   public function uploadAction() {
-    include_once('magic/Zip.php');
+    $tmpFolder = '';
 
-    $this->_zip = new Zip();
-    $this->_zip->handleZipUpload('field-images', ROOT_DIR . 'tmp');
+    include_once('magic/Zip.php');
+    include_once('magic/Image.php');
+
+    $image = new Image();
+    $zip = new Zip();
+
+    if (! $zip->handleZipUpload('field-images', ROOT_DIR . 'tmp') ) {
+      return FALSE;
+    }
+
+    $tmpFolder = $zip->getTmpFolder();
+
+    $images = scandir($tmpFolder);
+    $images = array_filter($images, $this->filterImages($tmpFolder));
+
+    $imageFolder = $tmpFolder . '/to_archive';
+
+    if (!mkdir($imageFolder, 0777)) {
+      return FALSE;
+    }
+
+    // all magic with image manipulation done in this cycle
+    foreach ($images as $img) {
+      $image->load($tmpFolder . '/' . $img);
+      $image->resizeToHeight(300);
+      //$image->resizeToWidth(300);
+      $image->flip('v');
+      $image->rotate(180);
+      $image->greyScale();
+      $image->reverseColor();
+      $image->setBrightness(20);
+      $image->setContrast(20);
+      $image->setBlur();
+      $image->save($imageFolder . '/' . $img);
+    }
+
+    $zipName = $tmpFolder . '/antonkuzmenko.net.zip';
+
+    if ( $zip->compress($imageFolder, $zipName) ) {
+      $this->forceDownloadFile($zipName);
+    }
+
+    $this->rrmdir($tmpFolder);
+
+    return '';
   }
 
 //  Helpers
@@ -63,32 +105,6 @@ class Controller {
     return $this->_twig->render('actions/' . $template . '.html.twig', $args);
   }
 
-  /**
-   * Clear templates cache.
-   */
-  protected function clearCache() {
-    $this->_twig->clearCacheFiles();
-  }
-
-  /**
-   * Get url argument.
-   *
-   * @param int $n
-   *  Position of the url argument
-   *
-   * @return string
-   *  argument or empty string
-   */
-  protected function arg($n = 0) {
-    $args = explode('/', ltrim($_SERVER['REQUEST_URI'], '/'));
-
-    if (isset($args[$n]) && !empty($args[$n])) {
-      return $args[$n];
-    }
-
-    return '';
-  }
-
   private function route() {
     $action = $this->arg();
 
@@ -106,4 +122,108 @@ class Controller {
     echo $this->noneAction();
   }
 
+  /**
+   * Clear templates cache.
+   */
+  private function clearCache() {
+    $this->_twig->clearCacheFiles();
+  }
+
+  /**
+   * Get url argument.
+   *
+   * @param int $n
+   *  Position of the url argument
+   *
+   * @return string
+   *  argument or empty string
+   */
+  private function arg($n = 0) {
+    $args = explode('/', ltrim($_SERVER['REQUEST_URI'], '/'));
+
+    if (isset($args[$n]) && !empty($args[$n])) {
+      return $args[$n];
+    }
+
+    return '';
+  }
+
+  /**
+   * Filter images.
+   *
+   * @param $dirPath
+   *
+   * @return callable
+   *  Returns true if file is image
+   */
+  private function filterImages($dirPath) {
+    return function($arg) use($dirPath) {
+      if ($arg == '.' || $arg == '..') {
+        return FALSE;
+      }
+
+      $path = $dirPath . '/' . $arg;
+
+      if ( is_dir($path) ) {
+        return FALSE;
+      }
+
+      $mime = getFileMime($path);
+
+      if ( !in_array($mime, array('jpeg', 'png', 'gif')) ) {
+        return FALSE;
+      }
+
+      return TRUE;
+    };
+  }
+
+  /**
+   * @param $filePath
+   *  Path to file
+   *
+   * @param string $fileName
+   *  New file name
+   */
+  private function forceDownloadFile($filePath, $fileName = 'antonkuzmenko.net.zip') {
+    $fileUrl = str_replace(ROOT_DIR, 'http://' . ROOT_ADR . '/', $filePath);
+
+    header('Content-Type: application/octet-stream');
+    header('Content-Transfer-Encoding: Binary');
+    header("Content-disposition: attachment; filename='{$fileName}'");
+
+    readfile($fileUrl);
+  }
+
+  /**
+   * Recursively remove folder.
+   *
+   * @param $dir
+   */
+  private function rrmdir($dir) {
+    foreach (glob($dir . '/*') as $file) {
+      if ( is_dir($file) ) {
+        $this->rrmdir($file);
+      }
+      else {
+        unlink($file);
+      }
+    }
+
+    rmdir($dir);
+  }
+}
+
+function getFileMime($pathToFile) {
+  if (!file_exists($pathToFile)) {
+    return FALSE;
+  }
+
+  $fInfo = finfo_open(FILEINFO_MIME_TYPE);
+  $mimeType = finfo_file($fInfo, $pathToFile);
+  finfo_close($fInfo);
+
+  list(, $type) = explode('/', $mimeType);
+
+  return $type;
 }

@@ -1,6 +1,6 @@
 <?php
 
-class ImageManipulation {
+class Image {
 
   /**
    * The image container variable
@@ -37,7 +37,7 @@ class ImageManipulation {
    */
   public function load($filename) {
     //first check if the file exists
-    if (!file_exists($filename)) {
+    if (!file_exists($filename) && is_dir($filename)) {
       return FALSE;
     }
 
@@ -66,9 +66,11 @@ class ImageManipulation {
         return FALSE;
     }
 
-    imagealphablending($this->_img, TRUE);
-    imagesavealpha($this->_img, TRUE);
-    return TRUE;
+    if (imagealphablending($this->_img, TRUE) && imagesavealpha($this->_img, TRUE) ) {
+      return TRUE;
+    }
+
+    return FALSE;
   }
 
   /**
@@ -82,26 +84,27 @@ class ImageManipulation {
    * @param int $png_compression The compression of the PNG image (used only if being saved as png), 0 (max quality, min compression) - 9
    * @return boolean true on success, false otherwise
    */
-  public function save_image($filename, $type = 'inherit', $jpeg_quality = 100, $png_compression = 0) {
-    if ($this->getWidth() > 550) {
-      $this->resizeToWidth(550);
-    }
-
+  public function save($filename, $type = 'inherit', $jpeg_quality = 100, $png_compression = 0) {
     $ext = 'inherit' == $type ? $this->_type : $type;
+
     switch ($ext) {
       case 'jpg' :
       case 'jpeg' :
         imagejpeg($this->_img, $filename, $jpeg_quality);
         break;
+
       case 'png' :
-        imagepng($this->_img, $filename, $png_compression = 0);
+        imagepng($this->_img, $filename, $png_compression);
         break;
+
       case 'gif' :
         imagegif($this->_img, $filename);
         break;
+
       default :
         return FALSE;
     }
+
     return TRUE;
   }
 
@@ -147,7 +150,7 @@ class ImageManipulation {
     }
 
     header('Content-type: image/' . $this->_type);
-    $this->save_image(NULL, $type, $jpeg_quality, $png_compression);
+    $this->save(NULL, $type, $jpeg_quality, $png_compression);
     //die to stop execution
     die();
   }
@@ -157,17 +160,13 @@ class ImageManipulation {
    *
    * Manipulates the image object saved in the img variable
    *
-   * @param string $type Flipping type, can be hori|horizontal|vert|vertical|both
+   * @param string $type Flipping type, can be h|horizontal|v|vertical|both
    * @return boolean true on success, false on failure
    */
-  public function flip_image($type) {
-    //little bit of error check
-    if (FALSE === $this->_img) {
-      return FALSE;
-    }
+  public function flip($type) {
     //first get the height and width
-    $width = imagesx($this->_img);
-    $height = imagesy($this->_img);
+    $width = $this->getWidth();
+    $height = $this->getHeight();
 
     //create the empty destination image
     $dest = imagecreatetruecolor($width, $height);
@@ -176,7 +175,7 @@ class ImageManipulation {
 
     //now work with the type and do the necessary flipping
     switch ($type) {
-      case 'vert' : //vertical flip
+      case 'v' : //vertical flip
       case 'vertical' :
         for ($i = 0; $i < $height; $i++) {
           /**
@@ -193,7 +192,7 @@ class ImageManipulation {
         }
         break;
 
-      case 'hori' : //horizontal flip
+      case 'h' : //horizontal flip
       case 'horizontal' :
         for ($i = 0; $i < $width; $i++) {
           /**
@@ -211,7 +210,7 @@ class ImageManipulation {
 
       case 'both' :
         //we simply return using recursive call
-        if ($this->flip_image('horizontal') && $this->flip_image('vertical')) {
+        if ($this->flip('horizontal') && $this->flip('vertical')) {
           return TRUE;
         }
         else {
@@ -225,6 +224,7 @@ class ImageManipulation {
     //now make the changes
     imagedestroy($this->_img);
     $this->_img = $dest;
+
     return TRUE;
   }
 
@@ -234,22 +234,24 @@ class ImageManipulation {
    * Rotates in clockwise direction and takes hexadecimal color code as input
    *
    * @param int $angle The rotational angle
-   * @param string $bgd_color The background color code in hex. Optional, default is ffffff (white)
+   * @param string $bgColor The background color code in hex. Optional, default is ffffff (white)
    * @param int $alpha The alpha value, 0 for opaque, 127 for transparent, anything between for translucent
    * @return void
    */
-  public function rotate_image($angle, $bgd_color = 'ffffff', $alpha = 0) {
-    if ($angle == 0) {
-      return;
-    }
+  public function rotate($angle, $bgColor = 'ffffff', $alpha = 0) {
     $angle = abs($angle);
     //make the value for clockwise rotation
-    $r_angle = 360 - ($angle % 360);
+    $rAngle = 360 - ($angle % 360);
 
-    extract($this->hex_to_rgb($bgd_color));
+    $red = 255;
+    $green = 255;
+    $blue = 255;
+
+    extract($this->hexToRgb($bgColor), EXTR_OVERWRITE);
+
     $color = imagecolorallocatealpha($this->_img, $red, $green, $blue, $alpha);
 
-    $dest = imagerotate($this->_img, $r_angle, $color);
+    $dest = imagerotate($this->_img, $rAngle, $color);
 
     if (FALSE !== $dest) {
       imagealphablending($dest, TRUE);
@@ -257,7 +259,39 @@ class ImageManipulation {
       imagedestroy($this->_img);
       $this->_img = $dest;
     }
+  }
 
+  public function greyScale() {
+    imagefilter($this->_img, IMG_FILTER_GRAYSCALE);
+  }
+
+  public function reverseColor() {
+    imagefilter($this->_img, IMG_FILTER_NEGATE);
+  }
+
+  /**
+   * Change image brightness.
+   *
+   * @param $level
+   *  Brightness level from -255 to 255
+   */
+  public function setBrightness($level) {
+    imagefilter($this->_img, IMG_FILTER_NEGATE, $level);
+  }
+
+  /**
+   * Change image contrast.
+   *
+   * @param $level
+   *  Contrast level from -255 to 255
+   */
+  public function setContrast($level) {
+    imagefilter($this->_img, IMG_FILTER_CONTRAST, $level);
+  }
+
+  public function setBlur() {
+    //imagelayereffect($this->_img, IMG_EFFECT_OVERLAY);
+    imagefilter($this->_img, IMG_FILTER_GAUSSIAN_BLUR);
   }
 
   /**
@@ -268,7 +302,7 @@ class ImageManipulation {
    * @param string $color 6 or 3 character long hexadecimal code
    * @return array with red, green, blue keys and corresponding values
    */
-  private function hex_to_rgb($color) {
+  private function hexToRgb($color) {
     if ($color[0] == '#') {
       $color = substr($color, 1);
     }
@@ -294,6 +328,7 @@ class ImageManipulation {
     $r = hexdec($r);
     $g = hexdec($g);
     $b = hexdec($b);
+
     return array('red' => $r, 'green' => $g, 'blue' => $b);
   }
 }
