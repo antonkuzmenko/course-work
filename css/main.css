@@ -7,3 +7,55 @@
 .form-item-wrapper.first-item {
   margin-top: 0;
 }
+
+.filter-item {
+  width: 256px;
+}
+
+#filters-container {
+  overflow: hidden;
+  float: left;
+}
+
+#filters-container .filter-item {
+  margin-top: 8px;
+}
+
+#filters-container input,
+#filters-container select {
+  float: right;
+  text-align: center;
+}
+
+#filters-container input[type=checkbox] {
+  float: right;
+  margin-right: 40px;
+  margin-top: 7px;
+}
+
+#upload-form-container {
+  clear: both;
+  padding-top: 30px;
+}
+
+#brightness,
+#contrast {
+  width: 56px;
+  height: 10px;
+  background-color: #f27e88;
+}
+
+#brightness-range,
+#contrast-range {
+  width: 256px;
+  height: 10px;
+  background-color: #ffd893;
+}
+
+#preview-button {
+  margin-top: 20px;
+}
+
+button {
+  padding: 2px 6px;
+}

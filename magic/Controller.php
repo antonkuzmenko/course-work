@@ -54,8 +54,8 @@ class Controller {
       $image->rotate(180);
       $image->greyScale();
       $image->reverseColor();
-      $image->setBrightness(20);
-      $image->setContrast(20);
+      $image->setBrightness(100);
+      $image->setContrast(100);
       $image->setBlur();
       $image->save($imageFolder . '/' . $img);
     }

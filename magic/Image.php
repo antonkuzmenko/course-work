@@ -276,7 +276,7 @@ class Image {
    *  Brightness level from -255 to 255
    */
   public function setBrightness($level) {
-    imagefilter($this->_img, IMG_FILTER_NEGATE, $level);
+    imagefilter($this->_img, IMG_FILTER_BRIGHTNESS, $level);
   }
 
   /**

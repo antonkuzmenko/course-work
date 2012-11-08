@@ -1,7 +1,71 @@
 {% extends 'default/base.html.twig' %}
 {% block content %}
 <div class="main wrapper clearfix">
-    <section>
+    <div id="filters-container">
+        <form action="" name="filters">
+            <div id="brightness-wrapper" class="filter-item">
+                <label for="brightness">Яркость:</label>
+                <span id="brightness-counter">0</span>
+                <div id="brightness-range">
+                    <div id="brightness" style="position: relative; left: 100px; top: 0;"></div>
+                </div>
+                <input name="brightness" type="hidden">
+            </div>
+
+            <div id="contrast-wrapper" class="filter-item">
+                <label for="contrast">Контрастность:</label>
+                <span id="contrast-counter">0</span>
+                <div id="contrast-range">
+                    <div id="contrast" style="position: relative; left: 100px; top: 0;"></div>
+                </div>
+                <input name="contrast" type="hidden">
+            </div>
+
+            <div id="resize-to-height-wrapper" class="filter-item">
+                <label for="resize-to-height">Высота</label><input name="resize-to-height" id="resize-to-height" type="text" size="5" value="0">
+            </div>
+
+            <div id="resize-to-width-wrapper" class="filter-item">
+                <label for="resize-to-width">Ширина</label><input name="resize-to-width" id="resize-to-width" type="text" size="5" value="0">
+            </div>
+
+            <div id="rotate-wrapper" class="filter-item">
+                <label for="rotate">Угол вращения</label><input id="rotate" name="rotate" type="text" size="5" value="0">
+            </div>
+
+            <div id="flip-wrapper" class="filter-item">
+                <label for="flip">Перевернуть</label><select name="flip" id="flip">
+                    <option value="n">Нет</option>
+                    <option value="h">Горизонталь</option>
+                    <option value="v">Вертикаль</option>
+                    <option value="b">Оба</option>
+                </select>
+            </div>
+
+            <div id="grey-wrapper" class="filter-item">
+                <label for="grey">Обесцветить</label><input type="checkbox" name="grey" id="grey" value="1">
+            </div>
+
+            <div id="reverse-wrapper" class="filter-item">
+                <label for="grey">Реверс цветов</label><input type="checkbox" name="reverse" id="reverse" value="1">
+            </div>
+
+            <div id="blur-wrapper" class="filter-item">
+                <label for="grey">Размытие по Гауссу</label><input type="checkbox" name="blur" id="blur" value="1">
+            </div>
+
+            <div id="button-wrapper">
+                <button id="preview-button">Preview</button>
+            </div>
+        </form>
+    </div>
+
+    <aside>
+        <h3>Предпросмотр</h3>
+        <div id="image-preview"></div>
+    </aside>
+
+    <div id="upload-form-container">
         <form id="form-images" name="form-images" action="/upload" method="post" enctype="multipart/form-data">
             <div class="form-item-wrapper first-item">
                 <input type="file" name="field-images[]" id="field-images" title="Choose images or upload a zip file with images">
@@ -10,11 +74,6 @@
                 <button name="field-submit">Apply filters</button>
             </div>
         </form>
-    </section>
-
-    <aside>
-        <h3>Текущие фильтры</h3>
-        <div id="image-preview"></div>
-    </aside>
+    </div>
 </div>
 {% endblock %}
