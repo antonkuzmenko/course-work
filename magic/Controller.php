@@ -52,9 +52,8 @@ class Controller {
     foreach ($images as $img) {
       $image->load($tmpFolder . '/' . $img);
 
-      foreach ($_GET as $f => $v) {
+      foreach ($_POST as $f => $v) {
         $f = $this->underscoreToCamel($f);
-        echo $f . '<br>';
         if ( method_exists($image, $f) && !empty($v) ) {
           call_user_func(array($image, $f), $v);
         }
