@@ -7,6 +7,8 @@ class Controller {
   private $_twig;
 
   public function __construct() {
+    session_start();
+
     $this->loadTwig();
     $this->route();
   }
@@ -46,17 +48,18 @@ class Controller {
     }
 
     // all magic with image manipulation done in this cycle
+
     foreach ($images as $img) {
       $image->load($tmpFolder . '/' . $img);
-      $image->resizeToHeight(300);
-      //$image->resizeToWidth(300);
-      $image->flip('v');
-      $image->rotate(180);
-      $image->greyScale();
-      $image->reverseColor();
-      $image->setBrightness(100);
-      $image->setContrast(100);
-      $image->setBlur();
+
+      foreach ($_GET as $f => $v) {
+        $f = $this->underscoreToCamel($f);
+        echo $f . '<br>';
+        if ( method_exists($image, $f) && !empty($v) ) {
+          call_user_func(array($image, $f), $v);
+        }
+      }
+
       $image->save($imageFolder . '/' . $img);
     }
 
@@ -211,6 +214,17 @@ class Controller {
     }
 
     rmdir($dir);
+  }
+
+  protected function underscoreToCamel($str) {
+    $ar = explode('-', $str);
+    $newStr = '';
+
+    foreach ($ar as $v) {
+      $newStr .= ucfirst($v);
+    }
+
+    return lcfirst($newStr);
   }
 }
 

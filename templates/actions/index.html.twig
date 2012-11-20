@@ -2,7 +2,7 @@
 {% block content %}
 <div class="main wrapper clearfix">
     <div id="filters-container">
-        <form action="" name="filters">
+        <form name="filters"  name="form-images" action="/upload" method="post" enctype="multipart/form-data">
             <div id="brightness-wrapper" class="filter-item">
                 <label for="brightness">Яркость:</label>
                 <span id="brightness-counter">0</span>
@@ -22,58 +22,56 @@
             </div>
 
             <div id="resize-to-height-wrapper" class="filter-item">
-                <label for="resize-to-height">Высота</label><input name="resize-to-height" id="resize-to-height" type="text" size="5" value="0">
+                <label for="resize-to-height">Высота</label><input name="resize-to-height" id="resize-to-height" type="text" maxlength="5" size="5" value="0">
             </div>
 
             <div id="resize-to-width-wrapper" class="filter-item">
-                <label for="resize-to-width">Ширина</label><input name="resize-to-width" id="resize-to-width" type="text" size="5" value="0">
+                <label for="resize-to-width">Ширина</label><input name="resize-to-width" id="resize-to-width" type="text" maxlength="5" size="5" value="0">
             </div>
 
             <div id="rotate-wrapper" class="filter-item">
-                <label for="rotate">Угол вращения</label><input id="rotate" name="rotate" type="text" size="5" value="0">
+                <label for="rotate">Угол вращения</label><input id="rotate" name="rotate" type="text" maxlength="5" size="5" value="0">
             </div>
 
             <div id="flip-wrapper" class="filter-item">
-                <label for="flip">Перевернуть</label><select name="flip" id="flip">
+                <label for="flip">Отразить</label><select name="flip" id="flip">
                     <option value="n">Нет</option>
                     <option value="h">Горизонталь</option>
                     <option value="v">Вертикаль</option>
-                    <option value="b">Оба</option>
+                    <option value="b">Оба варианта</option>
                 </select>
             </div>
 
             <div id="grey-wrapper" class="filter-item">
-                <label for="grey">Обесцветить</label><input type="checkbox" name="grey" id="grey" value="1">
+                <label for="grey">Обесцветить</label><input type="checkbox" name="grey" id="grey">
             </div>
 
             <div id="reverse-wrapper" class="filter-item">
-                <label for="grey">Реверс цветов</label><input type="checkbox" name="reverse" id="reverse" value="1">
+                <label for="grey">Реверс цветов</label><input type="checkbox" name="reverse" id="reverse">
             </div>
 
             <div id="blur-wrapper" class="filter-item">
-                <label for="grey">Размытие по Гауссу</label><input type="checkbox" name="blur" id="blur" value="1">
+                <label for="grey">Размытие по Гауссу</label><input type="checkbox" name="blur" id="blur">
             </div>
 
-            <div id="button-wrapper">
-                <button id="preview-button">Preview</button>
+            <div class="button-wrapper">
+                <button name="preview-button">Preview</button>
+            </div>
+
+            <div class="button-wrapper">
+                <input type="file" name="field-images[]" id="field-images" title="Choose images or upload a zip file with images">
+            </div>
+            <div class="button-wrapper">
+                <button name="field-submit">Apply filters</button>
             </div>
         </form>
     </div>
 
     <aside>
         <h3>Предпросмотр</h3>
-        <div id="image-preview"></div>
+        <div id="preview">
+            <img src="/img/preview.jpg" alt="" width="300">
+        </div>
     </aside>
-
-    <div id="upload-form-container">
-        <form id="form-images" name="form-images" action="/upload" method="post" enctype="multipart/form-data">
-            <div class="form-item-wrapper first-item">
-                <input type="file" name="field-images[]" id="field-images" title="Choose images or upload a zip file with images">
-            </div>
-            <div class="form-item-wrapper">
-                <button name="field-submit">Apply filters</button>
-            </div>
-        </form>
-    </div>
 </div>
 {% endblock %}

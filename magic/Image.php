@@ -209,6 +209,7 @@ class Image {
         break;
 
       case 'both' :
+      case 'b' :
         //we simply return using recursive call
         if ($this->flip('horizontal') && $this->flip('vertical')) {
           return TRUE;
@@ -217,6 +218,7 @@ class Image {
           return FALSE;
         }
         break;
+
       default :
         return FALSE;
     }
@@ -261,11 +263,11 @@ class Image {
     }
   }
 
-  public function greyScale() {
+  public function grey() {
     imagefilter($this->_img, IMG_FILTER_GRAYSCALE);
   }
 
-  public function reverseColor() {
+  public function reverse() {
     imagefilter($this->_img, IMG_FILTER_NEGATE);
   }
 
@@ -275,7 +277,7 @@ class Image {
    * @param $level
    *  Brightness level from -255 to 255
    */
-  public function setBrightness($level) {
+  public function brightness($level) {
     imagefilter($this->_img, IMG_FILTER_BRIGHTNESS, $level);
   }
 
@@ -285,20 +287,18 @@ class Image {
    * @param $level
    *  Contrast level from -255 to 255
    */
-  public function setContrast($level) {
-    imagefilter($this->_img, IMG_FILTER_CONTRAST, $level);
+  public function contrast($level) {
+    imagefilter($this->_img, IMG_FILTER_CONTRAST, -$level);
   }
 
-  public function setBlur() {
-    //imagelayereffect($this->_img, IMG_EFFECT_OVERLAY);
+  public function blur() {
+//    imagelayereffect($this->_img, IMG_EFFECT_OVERLAY);
     imagefilter($this->_img, IMG_FILTER_GAUSSIAN_BLUR);
   }
 
   /**
    * Converts hexadecimal to RGB color array
-   * @link http://www.anyexample.com/programming/php/php_convert_rgb_from_to_html_hex_color.xml
-   * @uses hexdec http://php.net/manual/en/function.hexdec.php
-   * @access private
+
    * @param string $color 6 or 3 character long hexadecimal code
    * @return array with red, green, blue keys and corresponding values
    */
